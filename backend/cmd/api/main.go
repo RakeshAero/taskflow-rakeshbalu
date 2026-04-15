@@ -60,8 +60,8 @@ func main(){
 	defer database.Close()
 	slog.Info("Database connection established")
 
-	// // ─── 5. Repositories ──────────────────────────────────────────────────────
-	// // Repositories hold all SQL queries. Think of them as your PDO query classes.
+	// ─── 5. Repositories ──────────────────────────────────────────────────────
+	// Repositories hold all SQL queries. Think of them as your PDO query classes.
 	// userRepo := repository.NewUserRepository(database)
 	// projectRepo := repository.NewProjectRepository(database)
 	// taskRepo := repository.NewTaskRepository(database)
