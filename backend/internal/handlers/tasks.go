@@ -59,6 +59,7 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 // Create handles POST /projects/:id/tasks
 // Adds a new task to the given project. Status defaults to "todo".
 func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
 	projectID := chi.URLParam(r, "id")
 
 	// Verify project exists before inserting a task into it.
@@ -80,7 +81,7 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.tasks.Create(r.Context(), projectID, &input)
+	task, err := h.tasks.Create(r.Context(), projectID, userID, &input)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "could not create task")
 		return
@@ -129,14 +130,12 @@ func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete handles DELETE /tasks/:id
-// Only the project owner OR the task's assignee can delete.
-// Spec: "project owner or task creator only" — we treat assignee as creator
-// since we don't store a separate created_by field.
+// Only the project owner OR the task creator can delete.
 func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 	id := chi.URLParam(r, "id")
 
-	// Fetch task to get project_id and assignee_id for the auth check.
+	// Fetch task to get project_id and created_by for the auth check.
 	task, err := h.tasks.GetByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -158,11 +157,11 @@ func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Authorization: must be project owner OR task assignee.
+	// Authorization: must be project owner OR task creator.
 	isProjectOwner := project.OwnerID == userID
-	isAssignee := task.AssigneeID != nil && *task.AssigneeID == userID
+	isTaskCreator := task.CreatedBy == userID
 
-	if !isProjectOwner && !isAssignee {
+	if !isProjectOwner && !isTaskCreator {
 		writeError(w, http.StatusForbidden, "forbidden")
 		return
 	}

@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/RakeshAero/taskflow-rakeshbalu/backend/internal/models"
+	"github.com/jmoiron/sqlx"
 )
 
 // TaskRepository handles all DB queries for the tasks table.
@@ -63,20 +63,21 @@ func (r *TaskRepository) ListByProject(ctx context.Context, projectID string, fi
 // Create inserts a new task into a project.
 // Status always defaults to "todo" — clients cannot set it on creation.
 // The DB column default also enforces this, but we're explicit here too.
-func (r *TaskRepository) Create(ctx context.Context, projectID string, input *models.CreateTaskInput) (*models.Task, error) {
+func (r *TaskRepository) Create(ctx context.Context, projectID, createdBy string, input *models.CreateTaskInput) (*models.Task, error) {
 	query := `
-		INSERT INTO tasks (title, description, status, priority, project_id, assignee_id, due_date)
-		VALUES ($1, $2, 'todo', $3, $4, $5, $6)
+		INSERT INTO tasks (title, description, status, priority, project_id, created_by, assignee_id, due_date)
+		VALUES ($1, $2, 'todo', $3, $4, $5, $6, $7)
 		RETURNING *`
 
 	var task models.Task
 	err := r.db.GetContext(ctx, &task, query,
 		input.Title,
-		input.Description,  // *string — nil becomes NULL
+		input.Description, // *string — nil becomes NULL
 		input.Priority,
 		projectID,
-		input.AssigneeID,   // *string — nil becomes NULL
-		input.DueDate,      // *time.Time — nil becomes NULL
+		createdBy,
+		input.AssigneeID, // *string — nil becomes NULL
+		input.DueDate,    // *time.Time — nil becomes NULL
 	)
 	if err != nil {
 		return nil, fmt.Errorf("Create task: %w", err)

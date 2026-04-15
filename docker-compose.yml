@@ -1,0 +1,84 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TaskFlow — docker-compose.yml
+#
+# Usage:
+#   docker compose up
+#
+# Everything starts in the right order:
+#   1. db        — Postgres starts, healthcheck confirms it's accepting queries
+#   2. api       — waits for db healthy, runs migrations, seeds, starts server
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB:       ${POSTGRES_DB:-taskflow}
+
+    ports:
+      # Expose 5432 to the host so you can connect with TablePlus/psql locally.
+      # Remove this in a production deployment.
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    volumes:
+      # Named volume persists DB data across `docker compose down` restarts.
+      # Use `docker compose down -v` to wipe it completely (fresh DB).
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      # pg_isready exits 0 when Postgres is ready to accept connections.
+      # The API service won't start until this passes.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-taskflow}"]
+      interval: 5s    # check every 5 seconds
+      timeout: 5s     # fail the check if no response in 5s
+      retries: 10     # try 10 times before marking unhealthy (~50s total)
+      start_period: 10s  # give Postgres 10s to init before checks begin
+
+  # ── Go API ──────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+
+    restart: unless-stopped
+
+    ports:
+      - "${PORT:-8080}:8080"
+
+    environment:
+      # Server
+      PORT:        ${PORT:-8080}
+      APP_ENV:     ${APP_ENV:-development}
+
+      # Database — uses service name "db" as hostname (Docker internal DNS)
+      DATABASE_URL:  ${DATABASE_URL:-postgres://postgres:postgres@db:5432/taskflow?sslmode=disable}
+
+      # Auth
+      JWT_SECRET: ${JWT_SECRET:-change_this_to_a_long_random_secret_32_chars}
+
+      # These are used by entrypoint.sh for pg_isready and psql
+      POSTGRES_HOST:     db
+      POSTGRES_PORT:     5432
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB:       ${POSTGRES_DB:-taskflow}
+
+    depends_on:
+      db:
+        # api won't start until db passes its healthcheck.
+        # This replaces the need for a sleep in entrypoint.sh,
+        # though we keep the pg_isready loop there as a safety net.
+        condition: service_healthy
+
+# ── Named Volumes ──────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local

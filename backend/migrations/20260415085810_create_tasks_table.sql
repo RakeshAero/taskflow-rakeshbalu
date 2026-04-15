@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     status      task_status   NOT NULL DEFAULT 'todo',
     priority    task_priority NOT NULL,
     project_id  UUID          NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    created_by  UUID          NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     assignee_id UUID          REFERENCES users(id) ON DELETE SET NULL, -- nullable
     due_date    DATE,                                -- nullable
     created_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
@@ -29,6 +30,7 @@ CREATE INDEX IF NOT EXISTS tasks_status_idx       ON tasks(status);
 -- Postgres doesn't update updated_at automatically like MySQL's ON UPDATE.
 -- We need a trigger function + a trigger on the tasks table.
  
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -36,6 +38,7 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+-- +goose StatementEnd
  
 CREATE TRIGGER tasks_set_updated_at
     BEFORE UPDATE ON tasks

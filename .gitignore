@@ -1,1 +1,16 @@
-/backend/cmd/api/.env
+# Environment — NEVER commit this
+.env
+backend/cmd/api/.env
+
+# Go build output
+backend/taskflow
+backend/*.exe
+
+# Go test cache
+*.test
+
+# Editor/OS noise
+.DS_Store
+.idea/
+.vscode/
+*.swp

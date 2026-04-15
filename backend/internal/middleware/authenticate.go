@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/RakeshAero/taskflow-rakeshbalu/backend/internal/handlers"
 )
 
 // contextKey is a private type for context keys.
@@ -43,14 +43,14 @@ func Authenticate(jwtSecret string) func(http.Handler) http.Handler {
 			// ── 1. Extract the token string ───────────────────────────────
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
-				handlers.WriteError(w, http.StatusUnauthorized, "authorization header required")
+				writeError(w, http.StatusUnauthorized, "authorization header required")
 				return
 			}
 
 			// Header must be exactly "Bearer <token>" — two parts, space-separated.
 			parts := strings.SplitN(authHeader, " ", 2)
 			if len(parts) != 2 || !strings.EqualFold(parts[0], "bearer") {
-				handlers.WriteError(w, http.StatusUnauthorized, "authorization header format must be: Bearer <token>")
+				writeError(w, http.StatusUnauthorized, "authorization header format must be: Bearer <token>")
 				return
 			}
 			tokenString := parts[1]
@@ -74,14 +74,14 @@ func Authenticate(jwtSecret string) func(http.Handler) http.Handler {
 				},
 			)
 			if err != nil || !token.Valid {
-				handlers.WriteError(w, http.StatusUnauthorized, "invalid or expired token")
+				writeError(w, http.StatusUnauthorized, "invalid or expired token")
 				return
 			}
 
 			// ── 3. Extract claims ─────────────────────────────────────────
 			claims, ok := token.Claims.(*Claims)
 			if !ok || claims.UserID == "" {
-				handlers.WriteError(w, http.StatusUnauthorized, "invalid token claims")
+				writeError(w, http.StatusUnauthorized, "invalid token claims")
 				return
 			}
 
@@ -100,4 +100,10 @@ func Authenticate(jwtSecret string) func(http.Handler) http.Handler {
 func GetUserID(ctx context.Context) string {
 	id, _ := ctx.Value(ContextUserID).(string)
 	return id
+}
+
+func writeError(w http.ResponseWriter, status int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(map[string]string{"error": message})
 }

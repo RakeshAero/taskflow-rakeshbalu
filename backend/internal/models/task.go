@@ -50,6 +50,7 @@ type Task struct {
 	Status      TaskStatus   `db:"status"      json:"status"`
 	Priority    TaskPriority `db:"priority"    json:"priority"`
 	ProjectID   string       `db:"project_id"  json:"project_id"`
+	CreatedBy   string       `db:"created_by"  json:"created_by"`
 	AssigneeID  *string      `db:"assignee_id" json:"assignee_id"` // nullable
 	DueDate     *time.Time   `db:"due_date"    json:"due_date"`    // nullable
 	CreatedAt   time.Time    `db:"created_at"  json:"created_at"`
@@ -59,10 +60,10 @@ type Task struct {
 // CreateTaskInput is what the client sends to POST /projects/:id/tasks.
 type CreateTaskInput struct {
 	Title       string       `json:"title"`
-	Description *string      `json:"description"`  // optional
-	Priority    TaskPriority `json:"priority"`     // required
-	AssigneeID  *string      `json:"assignee_id"`  // optional
-	DueDate     *time.Time   `json:"due_date"`     // optional
+	Description *string      `json:"description"` // optional
+	Priority    TaskPriority `json:"priority"`    // required
+	AssigneeID  *string      `json:"assignee_id"` // optional
+	DueDate     *time.Time   `json:"due_date"`    // optional
 	// Status is NOT in the create input — new tasks always start as "todo".
 	// The client cannot set status on creation, only via PATCH later.
 }
