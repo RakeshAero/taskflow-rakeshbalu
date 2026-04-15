@@ -12,14 +12,7 @@ import (
 
 // Connect opens a connection pool to PostgreSQL and verifies it with a ping.
 // Returns the pool on success, or an error if the DB is unreachable.
-//
-// Why sqlx over plain database/sql?
-//   - db.Get()    → scans a single row directly into a struct  (no manual Scan calls)
-//   - db.Select() → scans multiple rows into a slice of structs
-//   - db.NamedExec() → uses :field_name placeholders instead of $1,$2 (much cleaner for inserts)
-//
-// The pool is safe to use from multiple goroutines — chi handles each request
-// in its own goroutine, so this matters.
+
 func Connect(dsn string) (*sqlx.DB, error) {
 	// sqlx.Open does NOT actually dial the DB — it just validates the DSN format.
 	// The real connection happens on the first query, or when we call db.PingContext().
