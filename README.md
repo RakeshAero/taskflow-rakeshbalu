@@ -45,7 +45,7 @@ For windows use Git bash.
 ```bash
 # 1. Clone the repo
 git clone https://github.com/RakeshAero/taskflow-rakeshbalu
-cd taskflow-yourname
+cd taskflow-rakeshbalu
  
 # 2. Create your .env file
 cp .env.example .env
