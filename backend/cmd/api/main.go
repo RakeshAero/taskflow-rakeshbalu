@@ -64,6 +64,7 @@ func main() {
 	taskHandler := handlers.NewTaskHandler(taskRepo, projectRepo)
 	healthHandler := handlers.NewHealthHandler(database)
 
+
 	// ─── 7. Router
 	route := chi.NewRouter()
 	// Global middleware — runs on every request

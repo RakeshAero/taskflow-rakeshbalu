@@ -259,13 +259,12 @@ POST /projects/:id/tasks
 ```
 Request:
 ```json
-{
-  "title": "Design homepage",
-  "description": "Optional",
-  "priority": "high",
-  "assignee_id": "uuid or null",
-  "due_date": "2026-04-30"
-}
+{ 
+  "title": "Design login screen", 
+  "description": "Mobile + desktop", 
+  "priority": "high", 
+  "assignee_id": "11111111-1111-1111-1111-111111111111" 
+} 
 ```
 - `priority` must be: `low`, `medium`, or `high`
 - `status` always starts as `todo` — you can change it later via PATCH
@@ -281,12 +280,9 @@ All fields are optional. Send only what you want to change.
  
 Request:
 ```json
-{
-  "title": "Updated title",
-  "status": "in_progress",
-  "priority": "low",
-  "assignee_id": "uuid",
-  "due_date": "2026-05-01"
+{ 
+"status": "done", 
+"priority": "medium" 
 }
 ```
 To unassign a task, send `"assignee_id": null`.
@@ -309,33 +305,22 @@ Response `204`: no body.
  
 ### Error Responses
  
-All errors follow this shape:
+### Error response format 
+Validation error (`400`): 
+```json 
+{ 
+"error": "validation failed",
+"fields": { "email": "is required" } 
+} 
+``` 
+Common errors: 
+- `401`: unauthenticated / invalid token 
+- `403`: authenticated but not allowed 
+- `404`: `{ "error": "not found" }` 
+--- 
  
-```json
-{ "error": "not found" }
-```
- 
-Validation errors (400):
-```json
-{
-  "error": "validation failed",
-  "fields": {
-    "email": "is required",
-    "password": "must be at least 8 characters"
-  }
-}
-```
- 
-| Status | When |
-|--------|------|
-| 400 | Bad input or missing required fields |
-| 401 | No token, or token is invalid/expired |
-| 403 | You don't have permission to do that |
-| 404 | Resource doesn't exist |
-| 500 | Something went wrong on the server |
- 
----
 
 ## 7. What I'd Do With More Time 
 - Add automated tests: - unit tests for validation and middleware.
 - Add request rate limiting and audit logging for security-sensitive endpoints. 
+

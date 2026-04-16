@@ -18,8 +18,6 @@ type User struct {
 }
 
 // RegisterInput is what the client sends to POST /auth/register.
-// Keeping input structs separate from the model means you control exactly
-// what fields are accepted — the User struct is for DB reads, not writes.
 type RegisterInput struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
@@ -27,8 +25,6 @@ type RegisterInput struct {
 }
 
 // Validate checks all required fields and returns a map of field → error message.
-// Returns nil if input is valid.
-// The map shape matches the spec: { "fields": { "email": "is required" } }
 func (i *RegisterInput) Validate() map[string]string {
 	errs := map[string]string{}
 
@@ -47,7 +43,7 @@ func (i *RegisterInput) Validate() map[string]string {
 	if len(errs) > 0 {
 		return errs
 	}
-	return nil
+	return nil //valid
 }
 
 // LoginInput is what the client sends to POST /auth/login.

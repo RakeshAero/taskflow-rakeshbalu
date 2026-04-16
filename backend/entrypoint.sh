@@ -7,10 +7,10 @@ until pg_isready -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT}" -U "${POSTGRES_USER
 done
 
 echo "Running migrations..."
-goose -dir /app/migrations postgres "${DATABASE_URL}" up
+goose -dir migrations postgres "${DATABASE_URL}" up
 
 echo "Seeding database..."
-psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -f /app/seed.sql
+psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -f seed.sql
 
 echo "Starting API..."
 exec /app/taskflow
