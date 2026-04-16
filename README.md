@@ -314,7 +314,7 @@ Response `204`: no body.
  
 ### Error Responses
  
-### Error response format 
+#### Error response format 
 Validation error (`400`): 
 ```json 
 { 
@@ -331,5 +331,9 @@ Common errors:
 
 ## 7. What I'd Do With More Time 
 - Add automated tests: - unit tests for validation and middleware.
-- Add request rate limiting and audit logging for security-sensitive endpoints. 
+- Add request rate limiting and audit logging for security-sensitive endpoints.
+---
+
+## 8. Note 
+This project is configured for local development. Production deployment should use secure secrets management and proper network restrictions.
 
