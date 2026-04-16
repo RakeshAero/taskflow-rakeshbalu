@@ -1,9 +1,17 @@
 # TaskFlow API
  
-## A task management REST API built with Go, PostgreSQL, and Docker.
+## Overview
  
+TaskFlow is a task management REST API. Users can register, log in, create projects, add tasks to those projects, and assign tasks to themselves or others.
+ 
+**What it does:**
+- User registration and login with JWT authentication
+- Create and manage projects
+- Add tasks to projects with status, priority, assignee, and due date
+- Filter tasks by status or assignee
+- Only project owners can edit or delete their projects
+- Task delete is restricted to the project owner or the task assignee
 ---
- 
 ## Tech Stack
  
 - **Language:** Go 1.22
