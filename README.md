@@ -34,7 +34,8 @@
 ### Intentionally left out 
 - No frontend app in this repository (scope is backend + API testing). 
 - No rate limiting / refresh tokens / RBAC matrix beyond assignment rules. 
-- No automated test suite yet (manual Postman-first validation for assignment timeline). --- 
+- No automated test suite yet (manual Postman-first validation for assignment timeline).
+--- 
 
  ## 3. Running Locally
  
