@@ -146,7 +146,12 @@ Response `200`:
 ```json
 {
   "token": "<jwt>",
-  "user": { ... }
+  "user": {
+    "id": "uuid",
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "created_at": "2026-04-16T10:00:00Z"
+ }
 }
 ```
  
@@ -197,7 +202,7 @@ Response `201`: returns the created project object.
  
 #### Get project + its tasks
 ```
-GET /projects/:id
+GET /projects/projectID
 ```
 Response `200`:
 ```json
@@ -215,7 +220,7 @@ Response `200`:
  
 #### Update project
 ```
-PATCH /projects/:id
+PATCH /projects/projectID
 ```
 Only the project owner can do this.
  
@@ -232,7 +237,7 @@ Response `200`: returns the updated project object.
  
 #### Delete project
 ```
-DELETE /projects/:id
+DELETE /projects/projectID
 ```
 Only the project owner can do this. Deletes all tasks inside it too.
  
@@ -244,7 +249,7 @@ Response `204`: no body.
  
 #### List tasks
 ```
-GET /projects/:id/tasks
+GET /projects/projectID/tasks
 ```
 Optional filters:
 ```
@@ -264,7 +269,7 @@ Response `200`:
  
 #### Create task
 ```
-POST /projects/:id/tasks
+POST /projects/projectID/tasks
 ```
 Request:
 ```json
@@ -283,7 +288,7 @@ Response `201`: returns the created task object.
  
 #### Update task
 ```
-PATCH /tasks/:id
+PATCH /tasks/taskID
 ```
 All fields are optional. Send only what you want to change.
  
@@ -304,7 +309,7 @@ Response `200`: returns the updated task object.
  
 #### Delete task
 ```
-DELETE /tasks/:id
+DELETE /tasks/taskID
 ```
 Only the project owner or the task's assignee can do this.
  
