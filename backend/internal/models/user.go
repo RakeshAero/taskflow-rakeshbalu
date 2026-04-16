@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import( 
+	"time"
+	"regexp"
+)
 
 // User represents a row in the users table.
 // The struct tags tell two things:
@@ -24,6 +27,9 @@ type RegisterInput struct {
 	Password string `json:"password"`
 }
 
+// Simple email regex
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+
 // Validate checks all required fields and returns a map of field → error message.
 func (i *RegisterInput) Validate() map[string]string {
 	errs := map[string]string{}
@@ -33,6 +39,8 @@ func (i *RegisterInput) Validate() map[string]string {
 	}
 	if i.Email == "" {
 		errs["email"] = "is required"
+	} else if !emailRegex.MatchString(i.Email) {
+		errs["email"] = "invalid email format"
 	}
 	if i.Password == "" {
 		errs["password"] = "is required"
@@ -57,6 +65,8 @@ func (i *LoginInput) Validate() map[string]string {
 
 	if i.Email == "" {
 		errs["email"] = "is required"
+	} else if !emailRegex.MatchString(i.Email) {
+		errs["email"] = "invalid email format"
 	}
 	if i.Password == "" {
 		errs["password"] = "is required"

@@ -104,12 +104,6 @@ func (r *TaskRepository) GetByID(ctx context.Context, id string) (*models.Task, 
 }
 
 // Update applies a partial update to a task row.
-// Only non-nil fields are written. updated_at is handled by the DB trigger.
-//
-// Special case: AssigneeID can be explicitly set to nil (unassign a task).
-// When the client sends { "assignee_id": null }, Go decodes it as a nil
-// *string. We still want to write NULL to the DB in this case — so we
-// use a separate boolean flag to distinguish "not sent" from "sent as null".
 func (r *TaskRepository) Update(ctx context.Context, id string, input *models.UpdateTaskInput) (*models.Task, error) {
 	setClauses := []string{}
 	args := []any{}

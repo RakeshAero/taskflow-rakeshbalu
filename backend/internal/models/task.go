@@ -87,15 +87,6 @@ func (i *CreateTaskInput) Validate() map[string]string {
 }
 
 // NullableString solves the "null vs omitted" problem for PATCH endpoints.
-//
-// With a plain *string in a JSON struct:
-//   { "assignee_id": "uuid" }  → *string points to "uuid"  ← update
-//   (field not in body)        → *string is nil             ← skip (correct)
-//   { "assignee_id": null }    → *string is nil             ← also skip (WRONG — we want to set NULL)
-//
-// NullableString adds a Set flag so we can tell the difference:
-//   { "assignee_id": null }    → Set=true,  Value=nil   ← write NULL to DB
-//   (field not in body)        → Set=false, Value=nil   ← skip column entirely
 type NullableString struct {
 	Value *string // nil means SQL NULL
 	Set   bool    // true if the field was present in the JSON body
@@ -118,14 +109,6 @@ func (ns *NullableString) UnmarshalJSON(data []byte) error {
 }
 
 // UpdateTaskInput is what the client sends to PATCH /tasks/:id.
-// Every field is a pointer — only fields that are non-nil get updated.
-// This gives true PATCH behaviour: send only what you want to change.
-//
-// Example: to mark a task done, client sends just: { "status": "done" }
-// AssigneeID, Title, etc. stay untouched because they are nil.
-//
-// AssigneeID uses NullableString (not *string) so the repo can distinguish
-// between "field omitted" and "field explicitly set to null" (unassign).
 type UpdateTaskInput struct {
 	Title       *string        `json:"title"`
 	Description *string        `json:"description"`

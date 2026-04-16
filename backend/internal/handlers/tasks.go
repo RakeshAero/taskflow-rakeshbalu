@@ -27,8 +27,6 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 	projectID := chi.URLParam(r, "id")
 
 	// Verify the project actually exists before listing its tasks.
-	// Without this check, a request for a non-existent project returns []
-	// instead of 404 — confusing for API consumers.
 	if _, err := h.projects.GetByID(r.Context(), projectID); err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			writeError(w, http.StatusNotFound, "not found")
@@ -56,7 +54,6 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Create handles POST /projects/:id/tasks
 // Adds a new task to the given project. Status defaults to "todo".
 func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
@@ -91,8 +88,6 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update handles PATCH /tasks/:id
-// Any authenticated user can update a task's fields.
-// Authorization rule from the spec: no ownership restriction on update —
 // any project member can change status/priority/assignee.
 func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")

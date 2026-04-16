@@ -21,29 +21,22 @@ import (
 )
 
 func main() {
-	// ─── 1. Logger ────────────────────────────────────────────────────────────
-	// slog is Go's built-in structured logger (like Monolog in PHP).
-	// We write JSON lines to stdout so Docker can capture them.
+	// 1. Logger 
+	// slog
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))
 	slog.SetDefault(logger)
 
-	// ─── 2. Load .env ─────────────────────────────────────────────────────────
-	// godotenv.Load() reads the .env file and sets OS environment variables.
-	// It's safe to ignore the error in production (env vars already injected by Docker).
+	//  2. Load .env
 	if err := godotenv.Load(); err != nil {
 		slog.Info("No .env file found, reading from environment")
 	}
 
-	// ─── 3. Config ────────────────────────────────────────────────────────────
-	// config.Load() reads all required env vars and returns a typed Config struct.
-	// It calls log.Fatal internally if any required var is missing.
+	// 3. Config
 	cfg := config.Load()
 
-	// ─── 4. Database ──────────────────────────────────────────────────────────
-	// db.Connect() opens a connection pool and pings the DB.
-	// If the DB isn't reachable, we fail fast here — better than crashing mid-request.
+	// 4. Database 
 	database, err := db.Connect(cfg.DatabaseURL)
 	if err != nil {
 		slog.Error("Failed to connect to database", "error", err)
@@ -52,20 +45,20 @@ func main() {
 	defer database.Close()
 	slog.Info("Database connection established")
 
-	// ─── 5. Repositories ──────────────────────────────────────────────────────
-	// Repositories hold all SQL queries. Think of them as your PDO query classes.
+	// 5. Repositories 
+	// Repositories hold all SQL queries.
 	userRepo := repository.NewUserRepository(database)
 	projectRepo := repository.NewProjectRepository(database)
 	taskRepo := repository.NewTaskRepository(database)
 
-	// // 6. Handlers also Controllers
+	// 6. Handlers also Controllers
 	authHandler := handlers.NewAuthHandler(userRepo, cfg.JWTSecret)
 	projectHandler := handlers.NewProjectHandler(projectRepo)
 	taskHandler := handlers.NewTaskHandler(taskRepo, projectRepo)
 	healthHandler := handlers.NewHealthHandler(database)
 
 
-	// ─── 7. Router
+	// 7. Router
 	route := chi.NewRouter()
 	// Global middleware — runs on every request
 	route.Use(middleware.RequestID)  // Adds X-Request-Id header (useful for tracing)
@@ -73,7 +66,7 @@ func main() {
 	route.Use(requestLogger(logger)) // Our custom structured logger (defined below)
 	route.Use(middleware.Recoverer)  // Catches panics and returns 500 instead of crashing
 
-	// ─── 8. Routes
+	// 8. Routes
 	// Health check — no auth required. Used by Docker and load balancers.
 	route.Get("/health", healthHandler.Check)
 
@@ -82,7 +75,7 @@ func main() {
 	route.Post("/auth/login", authHandler.Login)
 
 	// Protected routes — JWT required
-	// chi.Group lets us apply middleware to a subset of routes only.
+	// Group middleware
 	route.Group(func(r chi.Router) {
 		// authmw.Authenticate parses the Bearer token and injects user_id into context.
 		// Any route inside this group will return 401 if the token is missing or invalid.
@@ -104,7 +97,7 @@ func main() {
 		r.Delete("/tasks/{id}", taskHandler.Delete)
 	})
 
-	// ─── 9. HTTP Server + Graceful shutdown ────────────────────────────────────
+	// 9. HTTP Server + Graceful shutdown 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           route,
