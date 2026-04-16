@@ -84,6 +84,258 @@ Email:    seed.user@taskflow.local
 Password: Taskflow@123
 ```
 
+## 6. API Reference
+ 
+### Base URL
+```
+http://localhost:8080
+```
+ 
+---
+ 
+### Auth
+ 
+#### Register
+```
+POST /auth/register
+```
+Request:
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "password123"
+}
+```
+Response `201`:
+```json
+{
+  "token": "<jwt>",
+  "user": {
+    "id": "uuid",
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "created_at": "2026-04-16T10:00:00Z"
+  }
+}
+```
+ 
+---
+ 
+#### Login
+```
+POST /auth/login
+```
+Request:
+```json
+{
+  "email": "jane@example.com",
+  "password": "password123"
+}
+```
+Response `200`:
+```json
+{
+  "token": "<jwt>",
+  "user": { ... }
+}
+```
+ 
+> All endpoints below require this header:
+> `Authorization: Bearer <token>`
+ 
+---
+ 
+### Projects
+ 
+#### List projects
+```
+GET /projects
+```
+Returns all projects you own or have tasks assigned to you in.
+ 
+Response `200`:
+```json
+{
+  "projects": [
+    {
+      "id": "uuid",
+      "name": "Website Redesign",
+      "description": "Q2 project",
+      "owner_id": "uuid",
+      "created_at": "2026-04-01T10:00:00Z"
+    }
+  ]
+}
+```
+ 
+---
+ 
+#### Create project
+```
+POST /projects
+```
+Request:
+```json
+{
+  "name": "My Project",
+  "description": "Optional description"
+}
+```
+Response `201`: returns the created project object.
+ 
+---
+ 
+#### Get project + its tasks
+```
+GET /projects/:id
+```
+Response `200`:
+```json
+{
+  "id": "uuid",
+  "name": "Website Redesign",
+  "description": "Q2 project",
+  "owner_id": "uuid",
+  "created_at": "...",
+  "tasks": [ ... ]
+}
+```
+ 
+---
+ 
+#### Update project
+```
+PATCH /projects/:id
+```
+Only the project owner can do this.
+ 
+Request (all fields optional):
+```json
+{
+  "name": "New Name",
+  "description": "New description"
+}
+```
+Response `200`: returns the updated project object.
+ 
+---
+ 
+#### Delete project
+```
+DELETE /projects/:id
+```
+Only the project owner can do this. Deletes all tasks inside it too.
+ 
+Response `204`: no body.
+ 
+---
+ 
+### Tasks
+ 
+#### List tasks
+```
+GET /projects/:id/tasks
+```
+Optional filters:
+```
+?status=todo
+?status=in_progress
+?status=done
+?assignee=<user-uuid>
+```
+Response `200`:
+```json
+{
+  "tasks": [ ... ]
+}
+```
+ 
+---
+ 
+#### Create task
+```
+POST /projects/:id/tasks
+```
+Request:
+```json
+{
+  "title": "Design homepage",
+  "description": "Optional",
+  "priority": "high",
+  "assignee_id": "uuid or null",
+  "due_date": "2026-04-30"
+}
+```
+- `priority` must be: `low`, `medium`, or `high`
+- `status` always starts as `todo` — you can change it later via PATCH
+Response `201`: returns the created task object.
+ 
+---
+ 
+#### Update task
+```
+PATCH /tasks/:id
+```
+All fields are optional. Send only what you want to change.
+ 
+Request:
+```json
+{
+  "title": "Updated title",
+  "status": "in_progress",
+  "priority": "low",
+  "assignee_id": "uuid",
+  "due_date": "2026-05-01"
+}
+```
+To unassign a task, send `"assignee_id": null`.
+ 
+- `status` must be: `todo`, `in_progress`, or `done`
+- `priority` must be: `low`, `medium`, or `high`
+Response `200`: returns the updated task object.
+ 
+---
+ 
+#### Delete task
+```
+DELETE /tasks/:id
+```
+Only the project owner or the task's assignee can do this.
+ 
+Response `204`: no body.
+ 
+---
+ 
+### Error Responses
+ 
+All errors follow this shape:
+ 
+```json
+{ "error": "not found" }
+```
+ 
+Validation errors (400):
+```json
+{
+  "error": "validation failed",
+  "fields": {
+    "email": "is required",
+    "password": "must be at least 8 characters"
+  }
+}
+```
+ 
+| Status | When |
+|--------|------|
+| 400 | Bad input or missing required fields |
+| 401 | No token, or token is invalid/expired |
+| 403 | You don't have permission to do that |
+| 404 | Resource doesn't exist |
+| 500 | Something went wrong on the server |
+ 
+---
+
 ## 7. What I'd Do With More Time 
 - Add automated tests: - unit tests for validation and middleware.
 - Add request rate limiting and audit logging for security-sensitive endpoints. 
